@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#f0a500">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KempuLog">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="favicon.png">
+<title>KempuLog – Filling Report</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
+:root{
+  --bg:#0d1117;--surface:#161b22;--surface2:#21262d;--surface3:#2d333b;
+  --border:#30363d;--accent:#f0a500;--accent2:#ff6b35;
+  --success:#3fb950;--info:#58a6ff;--danger:#f85149;
+  --text:#e6edf3;--text2:#8b949e;--text3:#6e7681;
+  --before:#58a6ff;--after:#3fb950;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+
+.app-header{background:linear-gradient(135deg,#0d1117,#161b22);border-bottom:1px solid var(--border);padding:14px 18px 10px;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.app-logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:9px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;font-size:18px}
+.logo-icon img{width:100%;height:100%;object-fit:cover}
+.app-title{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;line-height:1.1}
+.app-subtitle{font-size:10px;color:var(--text2)}
+.hdr-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.ts-badge{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 9px;font-size:10px;color:var(--text2);text-align:right}
+.ts-badge .t{font-weight:700;color:var(--accent);font-size:13px;display:block}
+.pills{display:flex;gap:4px}
+.pill{font-size:10px;padding:2px 7px;border-radius:20px;border:1px solid var(--border);background:var(--surface2)}
+.pill.ok{border-color:var(--success);color:var(--success)}
+.pill.fail{border-color:var(--danger);color:var(--danger)}
+.pill.warn{border-color:var(--accent);color:var(--accent)}
+.pill.offline{display:none;border-color:var(--danger);color:var(--danger)}
+.pill.offline.show{display:inline}
+
+.tab-nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.tab-nav::-webkit-scrollbar{display:none}
+.tab-btn{padding:6px 13px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0}
+.tab-btn.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
+
+.main{padding:14px;max-width:600px;margin:0 auto}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
+.card-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.5px}
+.bdg{padding:2px 7px;border-radius:8px;font-size:9px;font-weight:700}
+.bdg-a{background:var(--accent);color:#000}
+.bdg-b{background:var(--before);color:#000}
+.bdg-g{background:var(--after);color:#000}
+
+.form-group{margin-bottom:11px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.form-label{display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px}
+.req{color:var(--danger)}
+.form-input,.form-select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;transition:border-color .2s;-webkit-appearance:none;appearance:none}
+.form-input:focus,.form-select:focus{outline:none;border-color:var(--accent);background:var(--surface3)}
+.form-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%238b949e' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+
+.kempu-badge{background:linear-gradient(135deg,var(--surface2),var(--surface3));border:2px solid var(--accent);border-radius:11px;padding:11px;text-align:center;margin-bottom:12px;display:none}
+.kb-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
+.kb-val{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--accent)}
+
+.progress-wrap{margin-bottom:12px}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:4px}
+.progress-bg{background:var(--surface2);border-radius:4px;height:4px;overflow:hidden}
+.progress-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s}
+
+.photo-section{border-radius:11px;overflow:hidden;margin-bottom:9px}
+.ps-hdr{padding:8px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;gap:7px}
+.photo-section.before .ps-hdr{background:rgba(88,166,255,.15);color:var(--before)}
+.photo-section.after  .ps-hdr{background:rgba(63,185,80,.15);color:var(--after)}
+.photo-grid{background:var(--surface2);padding:11px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(min-width:380px){.photo-grid{grid-template-columns:repeat(4,1fr)}}
+.photo-item label{cursor:pointer;display:block}
+.photo-item input[type="file"]{display:none}
+.photo-box{border:2px dashed var(--border);border-radius:9px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;overflow:hidden;position:relative;background:var(--surface);transition:all .2s}
+.photo-box:active{transform:scale(.95)}
+.photo-box.filled{border-style:solid}
+.photo-section.before .photo-box.filled{border-color:var(--before)}
+.photo-section.after  .photo-box.filled{border-color:var(--after)}
+.photo-box .pi{font-size:20px}
+.photo-box .pc{font-size:9px;color:var(--text3);text-align:center;line-height:1.3;padding:0 3px}
+.photo-box img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.photo-box .ck{position:absolute;top:4px;right:4px;width:16px;height:16px;background:var(--success);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+.photo-count{margin-left:auto;background:var(--surface3);border-radius:9px;padding:2px 7px;font-size:10px;color:var(--text2)}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:13px;border-radius:11px;border:none;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-success{background:var(--success);color:#000}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-sm{padding:7px 13px;font-size:12px;width:auto}
+
+.install-banner{background:linear-gradient(135deg,rgba(240,165,0,.1),rgba(255,107,53,.07));border:1px solid rgba(240,165,0,.3);border-radius:12px;padding:11px 14px;margin-bottom:12px;display:none;align-items:center;gap:10px}
+.ib-icon{font-size:24px;flex-shrink:0}
+.ib-text .ib-title{font-weight:700;font-size:13px;color:var(--accent)}
+.ib-text .ib-sub{font-size:10px;color:var(--text2)}
+.ib-btn{background:var(--accent);color:#000;border:none;padding:7px 12px;border-radius:7px;font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0;margin-left:auto}
+
+.hint{font-size:11px;color:var(--text3);text-align:center;margin:7px 0 18px}
+
+.rec-item{background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px;margin-bottom:7px;cursor:pointer;transition:background .2s}
+.rec-item:active{background:var(--surface3)}
+.rec-item.s-before{border-left:3px solid var(--before)}
+.rec-item.s-complete{border-left:3px solid var(--after)}
+.rec-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.rec-kempu{font-family:'Syne',sans-serif;font-weight:700;color:var(--accent);font-size:14px}
+.chips{display:flex;gap:4px}
+.chip{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px}
+.c-before{background:rgba(88,166,255,.2);color:var(--before)}
+.c-complete{background:rgba(63,185,80,.2);color:var(--after)}
+.c-synced{background:rgba(63,185,80,.1);color:var(--success)}
+.c-local{background:rgba(110,118,129,.1);color:var(--text3)}
+.rec-meta{font-size:11px;color:var(--text2);line-height:1.5}
+.dot-row{display:flex;gap:3px;align-items:center;margin-top:3px}
+.dot{width:6px;height:6px;border-radius:50%}
+
+.empty-state{text-align:center;padding:36px 16px;color:var(--text3)}
+.empty-state .ei{font-size:36px;margin-bottom:8px}
+.empty-state p{font-size:13px}
+
+.sheet-wrap{overflow-x:auto;border-radius:9px;border:1px solid var(--border)}
+.sheet-tbl{border-collapse:collapse;width:100%;min-width:720px;font-size:10px}
+.sheet-tbl th{padding:7px 9px;text-align:left;font-weight:700;border-right:1px solid var(--border);white-space:nowrap}
+.sheet-tbl td{padding:6px 9px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);white-space:nowrap;color:var(--text2)}
+.sheet-tbl tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+.th-i{background:#1a2742;color:#58a6ff}
+.th-b{background:rgba(88,166,255,.18);color:var(--before)}
+.th-a{background:rgba(63,185,80,.18);color:var(--after)}
+.th-m{background:rgba(240,165,0,.12);color:var(--accent)}
+.sc{display:inline-block;padding:2px 7px;border-radius:18px;font-size:9px;font-weight:700}
+.sc-l{background:rgba(63,185,80,.2);color:var(--after)}
+.sc-b{background:rgba(88,166,255,.2);color:var(--before)}
+td a{color:var(--info);font-size:9px}
+
+.info-box{background:rgba(88,166,255,.07);border:1px solid rgba(88,166,255,.22);border-radius:11px;padding:13px;margin-bottom:12px}
+.info-box h3{color:var(--info);font-size:12px;margin-bottom:7px;font-weight:700}
+.info-box p,.info-box li{font-size:11px;color:var(--text2);line-height:1.6}
+.info-box ol{padding-left:14px;margin-top:5px}
+.info-box code{background:var(--surface3);padding:1px 5px;border-radius:3px;font-size:10px;color:var(--accent);font-family:monospace}
+
+.warn-box{background:rgba(240,165,0,.07);border:1px solid rgba(240,165,0,.25);border-radius:10px;padding:11px 13px;font-size:11px;color:var(--accent);margin-bottom:11px;display:flex;gap:7px;align-items:flex-start}
+
+.setup-locked{text-align:center;padding:36px 16px}
+.lock-icon{font-size:48px;margin-bottom:12px}
+.lock-title{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;color:var(--accent);margin-bottom:6px}
+.lock-sub{font-size:12px;color:var(--text2);margin-bottom:20px}
+.unlock-form{max-width:240px;margin:0 auto}
+.conn-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:10px 12px;background:var(--surface2);border-radius:9px;border:1px solid var(--border)}
+.cdot{width:8px;height:8px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.cdot.on{background:var(--success);box-shadow:0 0 6px var(--success)}
+.cdot.fail{background:var(--danger);box-shadow:0 0 6px var(--danger)}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:flex-end;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:var(--surface);border-radius:18px 18px 0 0;padding:16px;width:100%;max-height:92vh;overflow-y:auto;animation:su .3s ease}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:32px;height:3px;background:var(--border);border-radius:2px;margin:0 auto 12px}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:10px 16px;font-size:12px;z-index:999;transition:transform .35s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.5);max-width:90vw}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:var(--success);color:var(--success)}
+.toast.error{border-color:var(--danger);color:var(--danger)}
+.toast.info{border-color:var(--info);color:var(--info)}
+
+.spin{width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+input[type="number"]{-moz-appearance:textfield}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button{display:none}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-top">
+    <div class="app-logo">
+      <div class="logo-icon"><img src="icon-192.png" alt="K" onerror="this.parentNode.textContent='🏭'"></div>
+      <div>
+        <div class="app-title">KempuLog</div>
+        <div class="app-subtitle" id="hdr-company">Filling Report System</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div class="ts-badge">
+        <span class="t" id="live-time">--:--</span>
+        <span id="live-date">–</span>
+      </div>
+      <div class="pills">
+        <span class="pill" id="sync-pill">⏳</span>
+        <span class="pill offline" id="offline-pill">⚡ Offline</span>
+      </div>
+    </div>
+  </div>
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('form',this)">📋 Form</button>
+    <button class="tab-btn" onclick="switchTab('records',this)">📁 Riwayat</button>
+    <button class="tab-btn" onclick="switchTab('sheet',this)">📊 Format</button>
+    <button class="tab-btn" onclick="switchTab('setup',this)">⚙️ Setup</button>
+  </div>
+</header>
+
+<div class="main">
+
+<!-- ═══ TAB FORM ═══ -->
+<div class="tab-panel active" id="tab-form">
+
+  <div class="install-banner" id="install-banner">
+    <div class="ib-icon">📲</div>
+    <div class="ib-text">
+      <div class="ib-title">Install KempuLog</div>
+      <div class="ib-sub">Pasang ke layar utama HP</div>
+    </div>
+    <button class="ib-btn" onclick="doInstall()">Install</button>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-label"><span>Kelengkapan Form</span><span id="pct-text">0%</span></div>
+    <div class="progress-bg"><div class="progress-fill" id="pct-fill" style="width:0%"></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📝 Info Pengisian <span class="bdg bdg-a">Step 1</span></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Tanggal<span class="req">*</span></label>
+        <input type="date" class="form-input" id="f-tanggal" oninput="calcProgress()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Shift<span class="req">*</span></label>
+        <select class="form-select" id="f-shift" onchange="calcProgress()">
+          <option value="">Pilih...</option>
+          <option>Shift 1 (07:00–15:00)</option>
+          <option>Shift 2 (15:00–23:00)</option>
+          <option>Shift 3 (23:00–07:00)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Nama Operator<span class="req">*</span></label>
+        <input type="text" class="form-input" id="f-nama" placeholder="Nama lengkap" oninput="calcProgress()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Grup<span class="req">*</span></label>
+        <select class="form-select" id="f-grup" onchange="calcProgress()">
+          <option value="">Pilih...</option>
+          <option>A</option><option>B</option><option>C</option><option>D</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Varian<span class="req">*</span></label>
+        <input type="text" class="form-input" id="f-varian" placeholder="A20, B15..." oninput="calcProgress()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">No. Kempu<span class="req">*</span></label>
+        <input type="text" class="form-input" id="f-kempu" placeholder="K-001" oninput="onKempuInput()">
+      </div>
+    </div>
+    <div class="kempu-badge" id="kempu-badge">
+      <div class="kb-lbl">No. Kempu Aktif</div>
+      <div class="kb-val" id="kempu-badge-val">–</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📷 Foto Before Filling <span class="bdg bdg-b">Step 2</span></div>
+    <p style="font-size:11px;color:var(--text2);margin-bottom:11px">Foto kempu <strong style="color:var(--before)">SEBELUM</strong> diisi. Ambil 4 foto lalu simpan.</p>
+    <div class="photo-section before">
+      <div class="ps-hdr">📷 Before <span class="photo-count" id="cnt-before">0/4</span></div>
+      <div class="photo-grid" id="before-grid">
+        <div class="photo-item"><label><input type="file" accept="image/*" capture="environment" id="finput-before-depan" onchange="takePhoto(this,'before-depan')"><div class="photo-box" id="pb-before-depan"><span class="pi">📸</span><span class="pc">Bagian Depan</span></div></label></div>
+        <div class="photo-item"><label><input type="file" accept="image/*" capture="environment" id="finput-before-belakang" onchange="takePhoto(this,'before-belakang')"><div class="photo-box" id="pb-before-belakang"><span class="pi">📸</span><span class="pc">Bagian Belakang</span></div></label></div>
+        <div class="photo-item"><label><input type="file" accept="image/*" capture="environment" id="finput-before-bawah" onchange="takePhoto(this,'before-bawah')"><div class="photo-box" id="pb-before-bawah"><span class="pi">📸</span><span class="pc">Bagian Bawah</span></div></label></div>
+        <div class="photo-item"><label><input type="file" accept="image/*" capture="environment" id="finput-before-timbangan" onchange="takePhoto(this,'before-timbangan')"><div class="photo-box" id="pb-before-timbangan"><span class="pi">⚖️</span><span class="pc">Timbangan Zero</span></div></label></div>
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:10px">
+      <label class="form-label">Berat Kempu Kosong (kg)</label>
+      <input type="number" class="form-input" id="f-berat-before" placeholder="0.00" step="0.01">
+    </div>
+  </div>
+
+  <button class="btn btn-primary" onclick="saveBefore()">💾 Simpan Before → Lanjut Kempu Berikutnya</button>
+  <p class="hint">Form akan otomatis bersih setelah disimpan.<br>Foto After diisi via tab <strong>📁 Riwayat</strong> setelah semua kempu before selesai.</p>
+
+</div>
+
+<!-- ═══ TAB RIWAYAT ═══ -->
+<div class="tab-panel" id="tab-records">
+  <div class="card">
+    <div class="card-title">📁 Riwayat Kempu</div>
+    <div class="form-row" style="margin-bottom:11px">
+      <div class="form-group">
+        <label class="form-label">Tanggal</label>
+        <input type="date" class="form-input" id="r-date" onchange="renderRecords()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-select" id="r-status" onchange="renderRecords()">
+          <option value="">Semua</option>
+          <option value="before-only">⏳ Before Only</option>
+          <option value="complete">✅ Lengkap</option>
+        </select>
+      </div>
+    </div>
+    <div id="records-list"></div>
+  </div>
+  <div class="warn-box">
+    <span>💡</span>
+    <span>Tap item <strong>⏳ Before Only</strong> untuk tambah foto After. Data masuk ke baris yang <strong>sama</strong> di Google Sheets.</span>
+  </div>
+  <div style="text-align:center;margin-bottom:20px">
+    <button class="btn btn-secondary btn-sm" onclick="retrySyncAll()" style="display:inline-flex">☁️ Sync Ulang Data Pending</button>
+  </div>
+</div>
+
+<!-- ═══ TAB FORMAT SHEET ═══ -->
+<div class="tab-panel" id="tab-sheet">
+  <div class="card">
+    <div class="card-title">📊 Format Tabel Google Sheets</div>
+    <p style="font-size:11px;color:var(--text2);margin-bottom:12px">Setiap baris = 1 kempu. Before & After selalu <strong style="color:var(--accent)">satu baris</strong> yang sama berdasarkan Record ID.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:11px">
+      <span style="font-size:10px;padding:2px 8px;background:rgba(88,166,255,.12);border-radius:7px;color:var(--before)">🔵 Info Umum</span>
+      <span style="font-size:10px;padding:2px 8px;background:rgba(88,166,255,.2);border-radius:7px;color:var(--before)">📷 Before (4 link)</span>
+      <span style="font-size:10px;padding:2px 8px;background:rgba(63,185,80,.2);border-radius:7px;color:var(--after)">✅ After (4 link)</span>
+      <span style="font-size:10px;padding:2px 8px;background:rgba(240,165,0,.12);border-radius:7px;color:var(--accent)">⚖️ Berat & Status</span>
+    </div>
+    <div class="sheet-wrap">
+      <table class="sheet-tbl">
+        <thead><tr>
+          <th class="th-i">Timestamp</th><th class="th-i">Tanggal</th><th class="th-i">Shift</th>
+          <th class="th-i">Operator</th><th class="th-i">Grup</th><th class="th-i">Varian</th><th class="th-i">No Kempu</th>
+          <th class="th-b">Berat Before</th><th class="th-a">Berat After</th><th class="th-m">Net (kg)</th>
+          <th class="th-b">📷 Depan</th><th class="th-b">📷 Belakang</th><th class="th-b">📷 Bawah</th><th class="th-b">⚖️ Timb.Before</th>
+          <th class="th-a">🔢 No Kempu</th><th class="th-a">🔒 Tutup</th>
+          <th class="th-a">🔗 KabTies Atas</th><th class="th-a">🔗 KabTies Bawah</th>
+          <th class="th-a">⚖️ Timb.After</th>
+          <th class="th-m">Status</th><th class="th-i">Record ID</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td>07/03/25 07:15</td><td>2025-03-07</td><td>Shift 1</td><td>Ahmad R.</td><td>A</td><td>A20</td>
+            <td style="color:var(--accent);font-weight:700">K-001</td>
+            <td>0.00</td><td>25.40</td><td style="color:var(--success);font-weight:600">25.40</td>
+            <td><a href="#">🔗</a></td><td><a href="#">🔗</a></td><td><a href="#">🔗</a></td><td><a href="#">🔗</a></td>
+            <td><a href="#">🔗</a></td><td><a href="#">🔗</a></td><td><a href="#">🔗</a></td><td><a href="#">🔗</a></td><td><a href="#">🔗</a></td>
+            <td><span class="sc sc-l">LENGKAP</span></td><td style="color:var(--text3);font-size:9px">REC-001</td>
+          </tr>
+          <tr>
+            <td>07/03/25 07:18</td><td>2025-03-07</td><td>Shift 1</td><td>Ahmad R.</td><td>A</td><td>A20</td>
+            <td style="color:var(--accent);font-weight:700">K-002</td>
+            <td>0.00</td><td>–</td><td>–</td>
+            <td><a href="#">🔗</a></td><td><a href="#">🔗</a></td><td><a href="#">🔗</a></td><td><a href="#">🔗</a></td>
+            <td style="color:var(--text3)">–</td><td style="color:var(--text3)">–</td><td style="color:var(--text3)">–</td><td style="color:var(--text3)">–</td><td style="color:var(--text3)">–</td>
+            <td><span class="sc sc-b">BEFORE ONLY</span></td><td style="color:var(--text3);font-size:9px">REC-002</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:11px;background:var(--surface2);border-radius:9px;padding:11px">
+      <p style="font-size:11px;color:var(--text2);line-height:1.7">
+        📌 <strong style="color:var(--text)">21 kolom total.</strong> Kabel Ties dipisah menjadi 2 kolom: Atas &amp; Bawah. Saat foto After ditambah via Riwayat, sistem update baris yang sama di Sheets menggunakan Record ID. Semua foto dikompres ≤100KB sebelum dikirim.
+      </p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📁 Struktur Folder Google Drive</div>
+    <div style="background:var(--surface2);border-radius:9px;padding:13px;font-family:monospace;font-size:11px;line-height:2">
+      <div style="color:var(--accent)">📁 KempuLog_Photos/</div>
+      <div style="padding-left:16px;color:var(--text2)">
+        <div>REC-xxx_before_depan.jpg</div><div>REC-xxx_before_belakang.jpg</div>
+        <div>REC-xxx_before_bawah.jpg</div><div>REC-xxx_before_timbangan.jpg</div>
+        <div>REC-xxx_after_nomor.jpg</div><div>REC-xxx_after_tutup.jpg</div>
+        <div>REC-xxx_after_kabeltie_atas.jpg</div><div>REC-xxx_after_kabeltie_bawah.jpg</div>
+        <div>REC-xxx_after_timbangan.jpg</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TAB SETUP ═══ -->
+<div class="tab-panel" id="tab-setup">
+  <div class="card" id="setup-locked">
+    <div class="setup-locked">
+      <div class="lock-icon">🔐</div>
+      <div class="lock-title">Area Administrator</div>
+      <div class="lock-sub">Masukkan password untuk mengakses pengaturan</div>
+      <div class="unlock-form">
+        <div class="form-group">
+          <input type="password" class="form-input" id="setup-pw" placeholder="Password admin" style="letter-spacing:4px;font-size:18px;text-align:center" onkeyup="if(event.key==='Enter')unlock()">
+        </div>
+        <button class="btn btn-primary" onclick="unlock()">🔓 Masuk</button>
+      </div>
+      <p style="font-size:10px;color:var(--text3);margin-top:16px">Hanya administrator yang bisa mengubah konfigurasi</p>
+    </div>
+  </div>
+
+  <div id="setup-content" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:12px;color:var(--success);font-weight:600">🔓 Mode Administrator Aktif</span>
+      <button class="btn btn-sm btn-secondary" onclick="lockSetup()">🔒 Kunci</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🌐 Status Koneksi</div>
+      <div class="conn-row">
+        <div class="cdot" id="cdot"></div>
+        <span style="font-size:12px;color:var(--text2)" id="clabel">Memeriksa...</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" onclick="testConn()">🔌 Test</button>
+        <button class="btn btn-secondary btn-sm" onclick="retrySyncAll()">☁️ Sync Pending</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚙️ Konfigurasi Google</div>
+      <div class="warn-box">
+        <span>ℹ️</span>
+        <span>Konfigurasi tertanam di kode HTML. Perangkat baru langsung terhubung tanpa setup ulang. Isi nilai di bawah lalu simpan.</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Google Apps Script URL<span class="req">*</span></label>
+        <input type="url" class="form-input" id="cfg-url" placeholder="https://script.google.com/macros/s/...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Spreadsheet ID</label>
+        <input type="text" class="form-input" id="cfg-sheetid" placeholder="ID dari URL spreadsheet">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Drive Folder ID</label>
+        <input type="text" class="form-input" id="cfg-folderid" placeholder="ID folder foto di Drive">
+      </div>
+      <button class="btn btn-primary" onclick="saveGoogleCfg()">💾 Simpan & Test Koneksi</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏭 Pengaturan Perusahaan</div>
+      <div class="form-group">
+        <label class="form-label">Nama Perusahaan</label>
+        <input type="text" class="form-input" id="cfg-company" placeholder="PT. BAS Indonesia">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Varian Produk (pisah koma)</label>
+        <input type="text" class="form-input" id="cfg-variants" placeholder="A20, B15, C30">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nama Shift (pisah koma)</label>
+        <input type="text" class="form-input" id="cfg-shifts" placeholder="Shift 1 (07:00-15:00), Shift 2 ...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nama Grup (pisah koma)</label>
+        <input type="text" class="form-input" id="cfg-groups" placeholder="A, B, C, D">
+      </div>
+      <button class="btn btn-primary" onclick="saveAppCfg()">💾 Simpan Pengaturan</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📜 Kode Google Apps Script</div>
+      <div class="info-box" style="margin-bottom:11px">
+        <h3>📋 Langkah Setup (ikuti urutan)</h3>
+        <ol>
+          <li>Buat <strong>Google Spreadsheet</strong> baru → copy ID dari URL</li>
+          <li>Buat <strong>folder Google Drive</strong> → copy ID dari URL</li>
+          <li>Di Spreadsheet → <code>Extensions → Apps Script</code></li>
+          <li>Hapus kode default, paste kode di bawah</li>
+          <li>Ganti <code>SPREADSHEET_ID</code> & <code>FOLDER_ID</code></li>
+          <li><code>Deploy → New Deployment → Web App</code></li>
+          <li>Execute as: <code>Me</code> | Access: <code>Anyone</code></li>
+          <li>Copy URL deployment → paste di field Script URL → Simpan</li>
+        </ol>
+      </div>
+      <div style="position:relative">
+        <textarea id="gas-code" readonly style="width:100%;height:260px;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:11px;color:#c9d1d9;font-family:monospace;font-size:10px;resize:none;line-height:1.5"></textarea>
+        <button class="btn btn-sm btn-secondary" onclick="copyGAS()" style="position:absolute;top:7px;right:7px">📋 Copy</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:var(--danger)">⚠️ Zona Berbahaya</div>
+      <button class="btn btn-danger" onclick="nukeLocal()">🗑️ Hapus Semua Data Lokal</button>
+    </div>
+
+    <div style="text-align:center;padding:14px 0 28px;color:var(--text3);font-size:11px">
+      KempuLog v2.2 PWA · <span style="color:var(--accent)">Made for Mobile & Tablet</span>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- MODAL AFTER -->
+<div class="modal-overlay" id="after-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div id="after-modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   ▶ KONFIGURASI TERTANAM
+   Admin: isi nilai di bawah, lalu upload ulang
+   ke hosting / GitHub. Semua HP baru langsung
+   terhubung tanpa perlu setup manual.
+   ═══════════════════════════════════════════════ */
+const EMBEDDED = {
+  scriptUrl : '',        // ← URL Google Apps Script
+  sheetId   : '',        // ← ID Spreadsheet
+  folderId  : '',        // ← ID Folder Drive
+  company   : 'PT. BAS Indonesia',
+  variants  : 'A20,B15,C30,D10',
+  shifts    : 'Shift 1 (07:00–15:00),Shift 2 (15:00–23:00),Shift 3 (23:00–07:00)',
+  groups    : 'A,B,C,D',
+};
+const ADMIN_PASS = '11223344BAS';
+
+/* ═══════════════════════════════════════════════
+   GAS CODE
+   ═══════════════════════════════════════════════ */
+const GAS_CODE = `// KempuLog – Google Apps Script v2.2
+// Ganti dua konstanta lalu Deploy sebagai Web App
+// Execute as: Me | Who has access: Anyone
+
+const SPREADSHEET_ID = 'GANTI_DENGAN_SPREADSHEET_ID';
+const FOLDER_ID      = 'GANTI_DENGAN_FOLDER_ID';
+const SHEET_NAME     = 'Laporan Kempu';
+
+function doPost(e) {
+  try {
+    const d = JSON.parse(e.postData.contents);
+    if (d.action==='ping')        return J({ok:true});
+    if (d.action==='submit')      return J(submit(d));
+    if (d.action==='updateAfter') return J(updateAfter(d));
+    return J({ok:false,msg:'Unknown action'});
+  } catch(err) { return J({ok:false,msg:err.toString()}); }
+}
+function doGet() { return J({ok:true,msg:'KempuLog API Online'}); }
+function J(o) {
+  return ContentService.createTextOutput(JSON.stringify(o))
+         .setMimeType(ContentService.MimeType.JSON);
+}
+
+function sheet() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sh = ss.getSheetByName(SHEET_NAME);
+  if (!sh) {
+    sh = ss.insertSheet(SHEET_NAME);
+    const H = [
+      'Timestamp','Tanggal','Shift','Nama Operator','Grup','Varian','No Kempu',
+      'Berat Before (kg)','Berat After (kg)','Net (kg)',
+      'Foto Before Depan','Foto Before Belakang','Foto Before Bawah','Foto Before Timbangan',
+      'Foto After Nomor','Foto After Tutup',
+      'Foto KabelTies Atas','Foto KabelTies Bawah',
+      'Foto After Timbangan',
+      'Status','Record ID'
+    ];
+    sh.appendRow(H);
+    sh.setFrozenRows(1);
+    sh.getRange(1,1,1,H.length)
+      .setBackground('#0d1b3e').setFontColor('#f0a500').setFontWeight('bold');
+    [8,9,10,11,12,13,14,15,16,17,18,19].forEach(c=>sh.setColumnWidth(c,115));
+  }
+  return sh;
+}
+
+function upload(b64, fname) {
+  if (!b64) return '';
+  try {
+    const raw = b64.includes(',') ? b64.split(',')[1] : b64;
+    const f   = DriveApp.getFolderById(FOLDER_ID)
+                  .createFile(Utilities.newBlob(Utilities.base64Decode(raw),'image/jpeg',fname));
+    f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    return 'https://drive.google.com/file/d/'+f.getId()+'/view';
+  } catch(e) { return ''; }
+}
+
+function submit(d) {
+  const sh  = sheet();
+  const rid = d.recordId || Utilities.getUuid();
+  const p   = d.photos || {};
+
+  const bDep  = upload(p['before-depan'],         rid+'_before_depan.jpg');
+  const bBel  = upload(p['before-belakang'],       rid+'_before_belakang.jpg');
+  const bBaw  = upload(p['before-bawah'],          rid+'_before_bawah.jpg');
+  const bTim  = upload(p['before-timbangan'],      rid+'_before_timbangan.jpg');
+  const aNom  = upload(p['after-nomor'],           rid+'_after_nomor.jpg');
+  const aTut  = upload(p['after-tutup'],           rid+'_after_tutup.jpg');
+  const aKabA = upload(p['after-kabeltie-atas'],   rid+'_after_kabeltie_atas.jpg');
+  const aKabB = upload(p['after-kabeltie-bawah'],  rid+'_after_kabeltie_bawah.jpg');
+  const aTim  = upload(p['after-timbangan'],       rid+'_after_timbangan.jpg');
+
+  const bA  = parseFloat(d.beratAfter)||0;
+  const bB  = parseFloat(d.beratBefore)||0;
+  const net = bA>0 ? (bA-bB).toFixed(2) : '';
+  const st  = (aNom||bA) ? 'LENGKAP' : 'BEFORE ONLY';
+
+  sh.appendRow([
+    new Date().toLocaleString('id-ID'),
+    d.tanggal, d.shift, d.nama, d.grup, d.varian, d.nomorKempu,
+    d.beratBefore||'', d.beratAfter||'', net,
+    bDep,bBel,bBaw,bTim,
+    aNom,aTut,aKabA,aKabB,aTim,
+    st, rid
+  ]);
+
+  const row = sh.getLastRow();
+  const sc  = st==='LENGKAP' ? ['#d4edda','#155724'] : ['#fff3cd','#856404'];
+  sh.getRange(row,20).setBackground(sc[0]).setFontColor(sc[1]).setFontWeight('bold');
+
+  return {ok:true, recordId:rid, status:st};
+}
+
+function updateAfter(d) {
+  const sh   = sheet();
+  const vals = sh.getDataRange().getValues();
+  let row    = -1;
+  // Record ID ada di kolom 21 (index 20)
+  for (let i=1;i<vals.length;i++) {
+    if (String(vals[i][20])===String(d.recordId)) { row=i+1; break; }
+  }
+  if (row<0) return {ok:false,msg:'Record not found: '+d.recordId};
+
+  const p   = d.photos||{};
+  const rid = d.recordId;
+  const aNom  = upload(p['after-nomor'],          rid+'_after_nomor.jpg');
+  const aTut  = upload(p['after-tutup'],          rid+'_after_tutup.jpg');
+  const aKabA = upload(p['after-kabeltie-atas'],  rid+'_after_kabeltie_atas.jpg');
+  const aKabB = upload(p['after-kabeltie-bawah'], rid+'_after_kabeltie_bawah.jpg');
+  const aTim  = upload(p['after-timbangan'],      rid+'_after_timbangan.jpg');
+
+  const bB  = parseFloat(vals[row-1][7])||0;
+  const bA  = parseFloat(d.beratAfter)||0;
+  const net = bA>0 ? (bA-bB).toFixed(2) : '';
+
+  if(d.beratAfter) sh.getRange(row,9).setValue(bA);
+  if(net)          sh.getRange(row,10).setValue(net);
+  if(aNom)  sh.getRange(row,15).setValue(aNom);
+  if(aTut)  sh.getRange(row,16).setValue(aTut);
+  if(aKabA) sh.getRange(row,17).setValue(aKabA);
+  if(aKabB) sh.getRange(row,18).setValue(aKabB);
+  if(aTim)  sh.getRange(row,19).setValue(aTim);
+  sh.getRange(row,20).setValue('LENGKAP').setBackground('#d4edda').setFontColor('#155724').setFontWeight('bold');
+
+  return {ok:true, recordId:rid};
+}`;
+
+/* ═══════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════ */
+let photos    = {};
+let records   = [];
+let cfg       = {};
+let modalPics = {};
+let deferredInstall = null;
+let db;
+
+/* ═══════════════════════════════════════════════
+   INDEXED DB  (tahan dari refresh / close tab)
+   ═══════════════════════════════════════════════ */
+function openDB() {
+  return new Promise((ok,err) => {
+    const r = indexedDB.open('KempuLogDB', 3);
+    r.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('records')) d.createObjectStore('records',{keyPath:'id'});
+      if (!d.objectStoreNames.contains('kv'))      d.createObjectStore('kv',{keyPath:'k'});
+    };
+    r.onsuccess = e => { db=e.target.result; ok(db); };
+    r.onerror   = e => err(e);
+  });
+}
+const dbPut = (store,obj)   => new Promise((ok,er)=>{ const tx=db.transaction(store,'readwrite'); tx.objectStore(store).put(obj); tx.oncomplete=()=>ok(true); tx.onerror=er; });
+const dbGet = (store,key)   => new Promise((ok)=>{ const tx=db.transaction(store,'readonly'); const r=tx.objectStore(store).get(key); r.onsuccess=e=>ok(e.target.result); r.onerror=()=>ok(null); });
+const dbAll = (store)       => new Promise((ok)=>{ const tx=db.transaction(store,'readonly'); const r=tx.objectStore(store).getAll(); r.onsuccess=e=>ok(e.target.result||[]); r.onerror=()=>ok([]); });
+const dbClear = (store)     => new Promise((ok)=>{ const tx=db.transaction(store,'readwrite'); tx.objectStore(store).clear(); tx.oncomplete=()=>ok(true); });
+
+const kvGet = async(k)    => { const r=await dbGet('kv',k); return r?r.v:null; };
+const kvSet = async(k,v)  => dbPut('kv',{k,v});
+
+/* ═══════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', async () => {
+  document.getElementById('gas-code').value = GAS_CODE;
+  await openDB();
+  await loadAll();
+  setDefaults();
+  startClock();
+  monitorOnline();
+  registerSW();
+  pingServer();
+});
+
+async function loadAll() {
+  // Load records
+  const recs = await dbAll('records');
+  records = recs.sort((a,b) => new Date(b.savedAt)-new Date(a.savedAt));
+
+  // Merge config: embedded base + DB overrides
+  cfg = { ...EMBEDDED };
+  const ov = await kvGet('cfgOverride');
+  if (ov) cfg = { ...cfg, ...ov };
+
+  applyUI();
+  renderRecords();
+  updateSyncPill();
+}
+
+function applyUI() {
+  if (cfg.company) document.getElementById('hdr-company').textContent = cfg.company;
+
+  // Rebuild shift select
+  if (cfg.shifts) {
+    const el  = document.getElementById('f-shift');
+    const cur = el.value;
+    el.innerHTML = '<option value="">Pilih...</option>' +
+      cfg.shifts.split(',').map(s=>`<option>${s.trim()}</option>`).join('');
+    if (cur) el.value = cur;
+  }
+  // Rebuild group select
+  if (cfg.groups) {
+    const el  = document.getElementById('f-grup');
+    const cur = el.value;
+    el.innerHTML = '<option value="">Pilih...</option>' +
+      cfg.groups.split(',').map(s=>`<option>${s.trim()}</option>`).join('');
+    if (cur) el.value = cur;
+  }
+  // Populate setup fields
+  document.getElementById('cfg-url').value      = cfg.scriptUrl || '';
+  document.getElementById('cfg-sheetid').value  = cfg.sheetId   || '';
+  document.getElementById('cfg-folderid').value = cfg.folderId  || '';
+  document.getElementById('cfg-company').value  = cfg.company   || '';
+  document.getElementById('cfg-variants').value = cfg.variants  || '';
+  document.getElementById('cfg-shifts').value   = cfg.shifts    || '';
+  document.getElementById('cfg-groups').value   = cfg.groups    || '';
+}
+
+function setDefaults() {
+  const td = new Date().toISOString().split('T')[0];
+  document.getElementById('f-tanggal').value = td;
+  document.getElementById('r-date').value    = td;
+}
+
+/* ═══════════════════════════════════════════════
+   CLOCK
+   ═══════════════════════════════════════════════ */
+function startClock() {
+  const u = () => {
+    const n=new Date();
+    document.getElementById('live-time').textContent = n.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('live-date').textContent = n.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
+  };
+  u(); setInterval(u,1000);
+}
+
+/* ═══════════════════════════════════════════════
+   PWA / SW
+   ═══════════════════════════════════════════════ */
+function registerSW() {
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredInstall=e;
+  document.getElementById('install-banner').style.display='flex';
+});
+window.addEventListener('appinstalled', ()=>{ document.getElementById('install-banner').style.display='none'; showToast('🎉 KempuLog berhasil diinstall!','success'); });
+function doInstall() {
+  if (deferredInstall) { deferredInstall.prompt(); deferredInstall.userChoice.then(()=>deferredInstall=null); }
+  else showToast('💡 Gunakan menu browser → Add to Home Screen','info');
+}
+
+/* ═══════════════════════════════════════════════
+   ONLINE / OFFLINE
+   ═══════════════════════════════════════════════ */
+function monitorOnline() {
+  const pill = document.getElementById('offline-pill');
+  const u    = () => {
+    pill.classList.toggle('show', !navigator.onLine);
+    if (navigator.onLine) setTimeout(retrySyncAll, 2000);
+  };
+  u();
+  window.addEventListener('online',  u);
+  window.addEventListener('offline', u);
+}
+
+/* ═══════════════════════════════════════════════
+   SYNC PILL
+   ═══════════════════════════════════════════════ */
+function updateSyncPill() {
+  const pill    = document.getElementById('sync-pill');
+  const pending = records.filter(r=>!r.synced).length;
+  if (!pending) { pill.textContent='✅ Semua tersync'; pill.className='pill ok'; }
+  else          { pill.textContent=`⏳ ${pending} pending`; pill.className='pill warn'; }
+}
+
+/* ═══════════════════════════════════════════════
+   PING / CONN
+   ═══════════════════════════════════════════════ */
+async function pingServer() {
+  const dot=document.getElementById('cdot'), lbl=document.getElementById('clabel');
+  if (!dot||!lbl) return false;
+  if (!cfg.scriptUrl) { dot.className='cdot fail'; lbl.textContent='Script URL belum diisi'; return false; }
+  try {
+    const r = await Promise.race([
+      fetch(cfg.scriptUrl,{method:'POST',body:JSON.stringify({action:'ping'})}),
+      new Promise((_,rej)=>setTimeout(()=>rej(Error('timeout')),10000))
+    ]);
+    const d=await r.json();
+    if(d.ok){ dot.className='cdot on'; lbl.textContent='Terhubung ke Google Sheets ✓'; return true; }
+    throw Error(d.msg);
+  } catch(e){ dot.className='cdot fail'; lbl.textContent='Gagal: '+e.message; return false; }
+}
+async function testConn(){ showToast('🔌 Menguji koneksi...','info'); const ok=await pingServer(); showToast(ok?'✅ Berhasil!':'❌ Gagal — cek URL Script',ok?'success':'error'); }
+
+/* ═══════════════════════════════════════════════
+   IMAGE COMPRESSION (max 100KB, adaptive quality)
+   ═══════════════════════════════════════════════ */
+function compressImage(file, maxKB=100) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        // Resize: max dimension 1280px
+        const MAX_DIM = 1280;
+        let w = img.width, h = img.height;
+        if (w > MAX_DIM || h > MAX_DIM) {
+          if (w > h) { h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
+          else       { w = Math.round(w * MAX_DIM / h); h = MAX_DIM; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+
+        // Adaptive quality: mulai dari 0.85, turun sampai target tercapai
+        let quality = 0.85;
+        let result  = canvas.toDataURL('image/jpeg', quality);
+        const target = maxKB * 1024 * (4/3); // base64 ~33% lebih besar
+
+        while (result.length > target && quality > 0.2) {
+          quality -= 0.05;
+          result   = canvas.toDataURL('image/jpeg', quality);
+        }
+
+        // Tampilkan ukuran hasil di toast
+        const kb = Math.round(result.length * 3/4 / 1024);
+        console.log(`📷 Kompresi: ${img.width}×${img.height} → ${w}×${h}, ~${kb}KB (q=${quality.toFixed(2)})`);
+        resolve(result);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   PHOTO
+   ═══════════════════════════════════════════════ */
+function takePhoto(input, key) {
+  const file = input.files[0];
+  if (!file) return;
+  // Tampilkan loading
+  const box = document.getElementById('pb-'+key);
+  if (box) box.innerHTML = `<span class="pi">⏳</span><span class="pc">Mengkompresi...</span>`;
+
+  compressImage(file, 100).then(compressed => {
+    photos[key] = compressed;
+    if (box) {
+      box.classList.add('filled');
+      box.innerHTML = `<img src="${compressed}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><div class="ck">✓</div>`;
+    }
+    updateBeforeCount();
+    calcProgress();
+  });
+}
+
+function updateBeforeCount() {
+  const n = ['before-depan','before-belakang','before-bawah','before-timbangan'].filter(k=>photos[k]).length;
+  document.getElementById('cnt-before').textContent = n+'/4';
+}
+
+/* ═══════════════════════════════════════════════
+   PROGRESS
+   ═══════════════════════════════════════════════ */
+function calcProgress() {
+  const fids    = ['f-tanggal','f-shift','f-nama','f-grup','f-varian','f-kempu'];
+  const filled  = fids.filter(id=>document.getElementById(id).value.trim()).length;
+  const bCount  = ['before-depan','before-belakang','before-bawah','before-timbangan'].filter(k=>photos[k]).length;
+  const pct     = Math.round(((filled+bCount)/(fids.length+4))*100);
+  document.getElementById('pct-fill').style.width = pct+'%';
+  document.getElementById('pct-text').textContent = pct+'%';
+}
+
+function onKempuInput() {
+  const v=document.getElementById('f-kempu').value.trim();
+  const b=document.getElementById('kempu-badge');
+  b.style.display = v?'block':'none';
+  document.getElementById('kempu-badge-val').textContent = v||'–';
+  calcProgress();
+}
+
+/* ═══════════════════════════════════════════════
+   FORM COLLECT / VALIDATE
+   ═══════════════════════════════════════════════ */
+function collectForm() {
+  return {
+    tanggal    : document.getElementById('f-tanggal').value,
+    shift      : document.getElementById('f-shift').value,
+    nama       : document.getElementById('f-nama').value.trim(),
+    grup       : document.getElementById('f-grup').value,
+    varian     : document.getElementById('f-varian').value.trim(),
+    nomorKempu : document.getElementById('f-kempu').value.trim(),
+    beratBefore: document.getElementById('f-berat-before').value,
+  };
+}
+function validate(d) {
+  const m=[];
+  if(!d.tanggal) m.push('Tanggal'); if(!d.shift) m.push('Shift');
+  if(!d.nama)    m.push('Nama');    if(!d.grup)  m.push('Grup');
+  if(!d.varian)  m.push('Varian');  if(!d.nomorKempu) m.push('No. Kempu');
+  return m;
+}
+
+/* ═══════════════════════════════════════════════
+   SAVE BEFORE
+   ═══════════════════════════════════════════════ */
+async function saveBefore() {
+  const d = collectForm();
+  const m = validate(d);
+  if (m.length) { showToast('⚠️ Lengkapi: '+m.join(', '),'error'); return; }
+
+  const bKeys = ['before-depan','before-belakang','before-bawah','before-timbangan'];
+  const cnt   = bKeys.filter(k=>photos[k]).length;
+  if (cnt < 1) { showToast('⚠️ Upload minimal 1 foto Before','error'); return; }
+  if (cnt < 4 && !confirm(`Baru ${cnt}/4 foto before tersedia.\nSimpan sekarang?`)) return;
+
+  const rid = 'REC-'+Date.now()+'-'+Math.random().toString(36).slice(2,5).toUpperCase();
+  const rec = {
+    id         : rid,
+    ...d,
+    photos     : { ...photos },   // snapshot foto saat ini
+    status     : 'before-only',
+    savedAt    : new Date().toISOString(),
+    synced     : false,
+  };
+
+  records.unshift(rec);
+  await dbPut('records', rec);
+  updateSyncPill();
+  renderRecords();
+
+  // Kirim ke GAS (non-blocking)
+  sendToGAS(rec).then(async ok => {
+    if (ok) { updateSyncPill(); renderRecords(); }
+  });
+
+  showToast('✅ Before tersimpan — Kempu '+d.nomorKempu,'success');
+
+  // ── SIMPAN KONTEKS OPERATOR ──
+  const ctx = { nama:d.nama, grup:d.grup, shift:d.shift, tanggal:d.tanggal, varian:d.varian };
+
+  // ── RESET TOTAL ──
+  fullReset();
+
+  // ── KEMBALIKAN KONTEKS ──
+  document.getElementById('f-nama').value    = ctx.nama;
+  document.getElementById('f-grup').value    = ctx.grup;
+  document.getElementById('f-shift').value   = ctx.shift;
+  document.getElementById('f-tanggal').value = ctx.tanggal;
+  document.getElementById('f-varian').value  = ctx.varian;
+  calcProgress();
+}
+
+/* ── FULL RESET: foto & semua field ── */
+function fullReset() {
+  // 1. Hapus objek foto (PALING PENTING)
+  photos = {};
+
+  // 2. Reset semua field form
+  ['f-tanggal','f-shift','f-nama','f-grup','f-varian','f-kempu','f-berat-before'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('f-tanggal').value = new Date().toISOString().split('T')[0];
+
+  // 3. Reset input[type=file] dengan cara GANTI ELEMEN (paling reliable di semua HP)
+  const bKeys   = ['before-depan','before-belakang','before-bawah','before-timbangan'];
+  const bLabels = { 'before-depan':['📸','Bagian Depan'], 'before-belakang':['📸','Bagian Belakang'], 'before-bawah':['📸','Bagian Bawah'], 'before-timbangan':['⚖️','Timbangan Zero'] };
+
+  bKeys.forEach(key => {
+    // Reset visual box
+    const box = document.getElementById('pb-'+key);
+    if (box) {
+      box.classList.remove('filled');
+      box.innerHTML = `<span class="pi">${bLabels[key][0]}</span><span class="pc">${bLabels[key][1]}</span>`;
+    }
+    // Ganti input[file] lama dengan yang baru agar benar-benar kosong
+    const oldInput = document.getElementById('finput-'+key);
+    if (oldInput) {
+      const newInput = document.createElement('input');
+      newInput.type    = 'file';
+      newInput.accept  = 'image/*';
+      newInput.id      = 'finput-'+key;
+      newInput.setAttribute('capture','environment');
+      newInput.onchange = function(){ takePhoto(this, key); };
+      oldInput.parentNode.replaceChild(newInput, oldInput);
+    }
+  });
+
+  // 4. Reset counter & badge
+  document.getElementById('cnt-before').textContent   = '0/4';
+  document.getElementById('kempu-badge').style.display = 'none';
+  calcProgress();
+}
+
+/* ═══════════════════════════════════════════════
+   SEND TO GAS
+   ═══════════════════════════════════════════════ */
+async function gasPost(body) {
+  if (!cfg.scriptUrl || !navigator.onLine) return null;
+  try {
+    const r = await Promise.race([
+      fetch(cfg.scriptUrl, {method:'POST', body:JSON.stringify(body)}),
+      new Promise((_,rej)=>setTimeout(()=>rej(Error('timeout')),90000))
+    ]);
+    return await r.json();
+  } catch(e) { console.warn('GAS err:', e); return null; }
+}
+
+async function sendToGAS(rec) {
+  const d = await gasPost({
+    action:'submit', recordId:rec.id,
+    tanggal:rec.tanggal, shift:rec.shift, nama:rec.nama,
+    grup:rec.grup, varian:rec.varian, nomorKempu:rec.nomorKempu,
+    beratBefore:rec.beratBefore||'', beratAfter:rec.beratAfter||'',
+    photos:rec.photos,
+  });
+  if (d && d.ok) {
+    const idx=records.findIndex(x=>x.id===rec.id);
+    if(idx>=0){ records[idx].synced=true; records[idx].gasStatus=d.status; await dbPut('records',records[idx]); }
+    return true;
+  }
+  return false;
+}
+
+async function sendAfterToGAS(rec) {
+  const aKeys=['after-nomor','after-tutup','after-kabeltie-atas','after-kabeltie-bawah','after-timbangan'];
+  const ap={};
+  aKeys.forEach(k=>{ if(rec.photos[k]) ap[k]=rec.photos[k]; });
+  const d = await gasPost({
+    action:'updateAfter', recordId:rec.id,
+    beratAfter:rec.beratAfter||'', photos:ap,
+  });
+  if (d && d.ok) {
+    const idx=records.findIndex(x=>x.id===rec.id);
+    if(idx>=0){ records[idx].synced=true; await dbPut('records',records[idx]); }
+    return true;
+  }
+  return false;
+}
+
+async function retrySyncAll() {
+  if (!cfg.scriptUrl) { showToast('⚠️ Script URL belum diisi','error'); return; }
+  if (!navigator.onLine) { showToast('⚠️ Tidak ada koneksi','error'); return; }
+  const pending = records.filter(r=>!r.synced);
+  if (!pending.length) { showToast('✅ Semua data sudah tersync','success'); return; }
+  showToast(`☁️ Sync ${pending.length} data...`,'info');
+  let ok=0;
+  for (const rec of pending) {
+    let s = false;
+    if (rec.status==='complete') {
+      s = await sendAfterToGAS(rec);
+      if (!s) s = await sendToGAS(rec);
+    } else {
+      s = await sendToGAS(rec);
+    }
+    if (s) ok++;
+  }
+  showToast(`✅ Sync: ${ok}/${pending.length} berhasil`, ok===pending.length?'success':'info');
+  updateSyncPill(); renderRecords();
+}
+
+/* ═══════════════════════════════════════════════
+   RECORDS LIST
+   ═══════════════════════════════════════════════ */
+function renderRecords() {
+  const list=document.getElementById('records-list');
+  const fd  =document.getElementById('r-date').value;
+  const fs  =document.getElementById('r-status').value;
+
+  let recs = [...records];
+  if (fd) recs=recs.filter(r=>r.tanggal===fd);
+  if (fs) recs=recs.filter(r=>r.status===fs);
+
+  if (!recs.length) {
+    list.innerHTML=`<div class="empty-state"><div class="ei">📋</div><p>Tidak ada data${fd?' untuk tanggal ini':''}</p></div>`;
+    return;
+  }
+
+  const bK=['before-depan','before-belakang','before-bawah','before-timbangan'];
+  const aK=['after-nomor','after-tutup','after-kabeltie-atas','after-kabeltie-bawah','after-timbangan'];
+
+  list.innerHTML = recs.map(rec=>{
+    const bc=bK.filter(k=>rec.photos&&rec.photos[k]).length;
+    const ac=aK.filter(k=>rec.photos&&rec.photos[k]).length;
+    const done=rec.status==='complete';
+    const net=rec.beratAfter?((parseFloat(rec.beratAfter)||0)-(parseFloat(rec.beratBefore)||0)).toFixed(2):null;
+    return `
+    <div class="rec-item s-${done?'complete':'before'}" onclick="openAfterModal('${rec.id}')">
+      <div class="rec-top">
+        <span class="rec-kempu">No. ${rec.nomorKempu}</span>
+        <div class="chips">
+          <span class="chip ${done?'c-complete':'c-before'}">${done?'✅ Lengkap':'⏳ Before Only'}</span>
+          <span class="chip ${rec.synced?'c-synced':'c-local'}">${rec.synced?'☁️':'💾'}</span>
+        </div>
+      </div>
+      <div class="rec-meta">
+        ${rec.tanggal} · ${rec.shift} · <strong>${rec.nama}</strong> · Grup ${rec.grup} · ${rec.varian}
+        ${net?` · Net <strong style="color:var(--success)">${net} kg</strong>`:''}
+      </div>
+      <div class="dot-row">
+        ${[0,1,2,3].map(i=>`<div class="dot" style="background:var(--before);opacity:${i<bc?1:.15}"></div>`).join('')}
+        <span style="font-size:9px;color:var(--text3);margin:0 4px">|</span>
+        ${[0,1,2,3,4].map(i=>`<div class="dot" style="background:var(--after);opacity:${i<ac?1:.15}"></div>`).join('')}
+        <span style="font-size:9px;color:var(--text3);margin-left:5px">${bc}/4 before · ${ac}/5 after</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════
+   MODAL AFTER
+   ═══════════════════════════════════════════════ */
+function openAfterModal(rid) {
+  const rec=records.find(r=>r.id===rid);
+  if (!rec) return;
+  if (!modalPics[rid]) modalPics[rid]={};
+
+  const aK=['after-nomor','after-tutup','after-kabeltie-atas','after-kabeltie-bawah','after-timbangan'];
+  const lbl={
+    'after-nomor'        :'Nomor Kempu',
+    'after-tutup'        :'Tutup Kempu',
+    'after-kabeltie-atas':'Kabel Ties Atas',
+    'after-kabeltie-bawah':'Kabel Ties Bawah',
+    'after-timbangan'    :'Timbangan After'
+  };
+  const ico={
+    'after-nomor'        :'🔢',
+    'after-tutup'        :'🔒',
+    'after-kabeltie-atas':'🔗',
+    'after-kabeltie-bawah':'🔗',
+    'after-timbangan'    :'⚖️'
+  };
+
+  const boxes=aK.map(k=>{
+    const hp=rec.photos&&rec.photos[k];
+    return `<div class="photo-item"><label>
+      <input type="file" accept="image/*" capture="environment" id="mi-${k}" onchange="captureModal(this,'${k}','${rid}')">
+      <div class="photo-box ${hp?'filled':''}" id="mpb-${k}" style="${hp?'border-color:var(--after)':''}">
+        ${hp?`<img src="${rec.photos[k]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><div class="ck">✓</div>`
+            :`<span class="pi">${ico[k]}</span><span class="pc">${lbl[k]}</span>`}
+      </div>
+    </label></div>`;
+  }).join('');
+
+  document.getElementById('after-modal-body').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+      <div>
+        <h3 style="font-family:'Syne',sans-serif;font-size:17px;color:var(--accent)">Kempu ${rec.nomorKempu}</h3>
+        <p style="font-size:11px;color:var(--text2);margin-top:2px">${rec.tanggal} · ${rec.shift} · ${rec.nama} · Grup ${rec.grup}</p>
+      </div>
+      <span class="chip ${rec.status==='complete'?'c-complete':'c-before'}" style="margin-top:3px">${rec.status==='complete'?'✅ Lengkap':'⏳ Before Only'}</span>
+    </div>
+    <div class="photo-section after" style="border-radius:11px;overflow:hidden;margin-bottom:12px">
+      <div class="ps-hdr">✅ Foto After Filling <span class="photo-count" id="cnt-after-modal">0/5</span></div>
+      <div class="photo-grid" style="grid-template-columns:1fr 1fr 1fr;">${boxes}</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Berat After / Kempu Isi (kg)</label>
+      <input type="number" class="form-input" id="modal-berat-after" value="${rec.beratAfter||''}" placeholder="0.00" step="0.01">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-success" id="btn-save-after" onclick="saveAfter('${rid}')">✅ Simpan After</button>
+      <button class="btn btn-secondary btn-sm" onclick="closeModal()" style="flex-shrink:0">Tutup</button>
+    </div>`;
+
+  // Update counter awal
+  updateAfterModalCount(rid, rec);
+  document.getElementById('after-modal').classList.add('open');
+}
+
+function updateAfterModalCount(rid, rec) {
+  const aK=['after-nomor','after-tutup','after-kabeltie-atas','after-kabeltie-bawah','after-timbangan'];
+  const existing = aK.filter(k=>rec.photos&&rec.photos[k]).length;
+  const newPics  = Object.keys(modalPics[rid]||{}).filter(k=>aK.includes(k)).length;
+  const total    = aK.filter(k=>(modalPics[rid]&&modalPics[rid][k])||(rec.photos&&rec.photos[k])).length;
+  const cnt = document.getElementById('cnt-after-modal');
+  if (cnt) cnt.textContent = total+'/5';
+}
+
+function captureModal(input,key,rid) {
+  const f=input.files[0]; if(!f) return;
+  compressImage(f, 100).then(compressed=>{
+    modalPics[rid][key]=compressed;
+    const box=document.getElementById('mpb-'+key);
+    box.classList.add('filled'); box.style.borderColor='var(--after)';
+    box.innerHTML=`<img src="${compressed}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><div class="ck">✓</div>`;
+    // Update counter
+    const rec=records.find(r=>r.id===rid);
+    if(rec) updateAfterModalCount(rid,rec);
+  });
+}
+
+async function saveAfter(rid) {
+  const idx=records.findIndex(r=>r.id===rid);
+  if(idx<0) return;
+  const btn=document.getElementById('btn-save-after');
+  if(btn){ btn.innerHTML='<span class="spin"></span> Menyimpan...'; btn.disabled=true; }
+
+  records[idx].photos     = {...records[idx].photos,...(modalPics[rid]||{})};
+  records[idx].beratAfter = document.getElementById('modal-berat-after').value;
+  records[idx].status     = 'complete';
+  records[idx].synced     = false;
+  await dbPut('records',records[idx]);
+  updateSyncPill(); renderRecords();
+
+  // Coba kirim ke GAS
+  const ok = await sendAfterToGAS(records[idx]);
+  if (!ok) await sendToGAS(records[idx]); // fallback full submit
+
+  updateSyncPill(); renderRecords();
+  closeModal();
+  showToast(ok?'✅ Data After berhasil dikirim!':'💾 Tersimpan, akan di-sync otomatis',ok?'success':'info');
+  delete modalPics[rid];
+}
+
+function closeModal() { document.getElementById('after-modal').classList.remove('open'); }
+document.getElementById('after-modal').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
+
+/* ═══════════════════════════════════════════════
+   SETUP
+   ═══════════════════════════════════════════════ */
+function unlock() {
+  const pw=document.getElementById('setup-pw').value;
+  if (pw===ADMIN_PASS) {
+    document.getElementById('setup-locked').style.display='none';
+    document.getElementById('setup-content').style.display='block';
+    document.getElementById('setup-pw').value='';
+    applyUI(); pingServer();
+    showToast('🔓 Selamat datang, Administrator!','success');
+  } else {
+    const el=document.getElementById('setup-pw');
+    el.style.borderColor='var(--danger)';
+    el.value='';
+    setTimeout(()=>el.style.borderColor='',2000);
+    showToast('❌ Password salah!','error');
+  }
+}
+function lockSetup() {
+  document.getElementById('setup-locked').style.display='block';
+  document.getElementById('setup-content').style.display='none';
+  showToast('🔒 Setup dikunci','info');
+}
+
+async function saveGoogleCfg() {
+  const patch={
+    scriptUrl:document.getElementById('cfg-url').value.trim(),
+    sheetId  :document.getElementById('cfg-sheetid').value.trim(),
+    folderId :document.getElementById('cfg-folderid').value.trim(),
+  };
+  cfg = {...cfg,...patch};
+  const prev=await kvGet('cfgOverride')||{};
+  await kvSet('cfgOverride',{...prev,...patch});
+  showToast('✅ Konfigurasi Google tersimpan','success');
+  await testConn();
+  retrySyncAll();
+}
+
+async function saveAppCfg() {
+  const patch={
+    company :document.getElementById('cfg-company').value.trim(),
+    variants:document.getElementById('cfg-variants').value.trim(),
+    shifts  :document.getElementById('cfg-shifts').value.trim(),
+    groups  :document.getElementById('cfg-groups').value.trim(),
+  };
+  cfg = {...cfg,...patch};
+  const prev=await kvGet('cfgOverride')||{};
+  await kvSet('cfgOverride',{...prev,...patch});
+  applyUI();
+  showToast('✅ Pengaturan perusahaan tersimpan','success');
+}
+
+async function nukeLocal() {
+  if (!confirm('Hapus semua data riwayat lokal?\nData yang sudah ter-sync ke Sheets tidak terpengaruh.')) return;
+  await dbClear('records');
+  records=[]; renderRecords(); updateSyncPill();
+  showToast('🗑️ Data lokal dihapus','info');
+}
+
+/* ═══════════════════════════════════════════════
+   TAB / TOAST / UTILS
+   ═══════════════════════════════════════════════ */
+function switchTab(name,btn) {
+  document.querySelectorAll('.tab-panel').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='records') renderRecords();
+  if(name==='setup'){
+    document.getElementById('setup-locked').style.display='block';
+    document.getElementById('setup-content').style.display='none';
+    document.getElementById('setup-pw').value='';
+  }
+}
+let tT;
+function showToast(msg,type='info'){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast '+type;
+  el.classList.add('show');
+  clearTimeout(tT); tT=setTimeout(()=>el.classList.remove('show'),3500);
+}
+function copyGAS(){
+  document.getElementById('gas-code').select();
+  document.execCommand('copy');
+  showToast('📋 Kode Apps Script tersalin!','success');
+}
+</script>
+</body>
+</html>
