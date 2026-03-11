@@ -243,9 +243,9 @@ input[type="number"]::-webkit-outer-spin-button{display:none}
         <label class="form-label">Shift<span class="req">*</span></label>
         <select class="form-select" id="f-shift" onchange="calcProgress()">
           <option value="">Pilih...</option>
-          <option>Shift 1 (07:00–15:00)</option>
-          <option>Shift 2 (15:00–23:00)</option>
-          <option>Shift 3 (23:00–07:00)</option>
+          <option>Shift 1 (06:00–14:00)</option>
+          <option>Shift 2 (14:00–22:00)</option>
+          <option>Shift 3 (22:00–06:00)</option>
         </select>
       </div>
     </div>
@@ -466,7 +466,7 @@ input[type="number"]::-webkit-outer-spin-button{display:none}
       </div>
       <div class="form-group">
         <label class="form-label">Nama Grup (pisah koma)</label>
-        <input type="text" class="form-input" id="cfg-groups" placeholder="A, B, C, D">
+        <input type="text" class="form-input" id="cfg-groups" placeholder="A, B, C">
       </div>
       <button class="btn btn-primary" onclick="saveAppCfg()">💾 Simpan Pengaturan</button>
     </div>
@@ -523,13 +523,13 @@ input[type="number"]::-webkit-outer-spin-button{display:none}
    terhubung tanpa perlu setup manual.
    ═══════════════════════════════════════════════ */
 const EMBEDDED = {
-  scriptUrl : '',        // ← URL Google Apps Script
-  sheetId   : '',        // ← ID Spreadsheet
-  folderId  : '',        // ← ID Folder Drive
+  scriptUrl : 'https://script.google.com/macros/s/AKfycbwecdY1t6fdGzOes6OF9f5PfhGrjIA7vqAC6BvVDObD7c3FTHORdK17Hp88QPzcMLs3xQ/exec',        // ← URL Google Apps Script
+  sheetId   : '1WveRfoSGmlpF0QcLNzx7gx8zaE14RrKxMOwjiFTNVII',        // ← ID Spreadsheet
+  folderId  : '1Ato9ibAyZMWtusrWalK8efAd6zXwwwOo',        // ← ID Folder Drive
   company   : 'PT. BAS Indonesia',
-  variants  : 'A20,B15,C30,D10',
-  shifts    : 'Shift 1 (07:00–15:00),Shift 2 (15:00–23:00),Shift 3 (23:00–07:00)',
-  groups    : 'A,B,C,D',
+  variants  : 'MSD, NR2, MSD Lokal',
+  shifts    : 'Shift 1 (06:00–14:00),Shift 2 (14:00–22:00),Shift 3 (22:00–06:00)',
+  groups    : 'A,B,C',
 };
 const ADMIN_PASS = '11223344BAS';
 
