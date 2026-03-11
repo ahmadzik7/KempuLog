@@ -1,0 +1,2 @@
+# KempuLog
+Input Kempu
